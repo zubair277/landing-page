@@ -164,6 +164,39 @@ export default function Home() {
           </div>
         </section>
 
+        {/* iPhone app preview (mockup) */}
+        <section className="bg-slate-50">
+          <div className="mx-auto max-w-6xl px-6 pb-14 pt-4 sm:px-8 sm:pb-20 sm:pt-0">
+            <Reveal className="text-center">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+                App preview
+              </p>
+              <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
+                How your visit feels on mobile
+              </h2>
+              <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-600">
+                Scroll through dishes, vibe shots, and offers — just like your guests
+                would on their phones.
+              </p>
+            </Reveal>
+
+            <div className="mt-8 flex justify-center">
+              <div className="relative w-[82vw] max-w-[520px] sm:w-[70vw] sm:max-w-[520px]">
+                {/* Your iPhone mockup image (static) */}
+                <div className="relative mx-auto aspect-[9/19] w-full drop-shadow-2xl sm:drop-shadow-[0_40px_90px_rgba(15,23,42,0.35)]">
+                  <ImageWithSkeleton
+                    src="/iphone.png"
+                    alt="iPhone mockup"
+                    fill
+                    sizes="520px"
+                    imgClassName="object-contain scale-[1.8]"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* 2) BEST DISHES */}
         <Section
           id="dishes"
