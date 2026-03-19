@@ -69,7 +69,7 @@ export default function Home() {
       <StickyCtaBar onCoupon={() => setCouponOpen(true)} />
 
       {/* Navbar */}
-      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/80 backdrop-blur">
+      <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 sm:px-8">
           <div className="flex items-center gap-2">
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-white">
@@ -100,9 +100,9 @@ export default function Home() {
       <main>
         {/* 1) HERO */}
         <section className="bg-slate-50">
-          <div className="mx-auto max-w-6xl px-6 py-12 sm:px-8 sm:py-16">
-            <div className="grid items-center gap-10 lg:grid-cols-2">
-              <div>
+          <div className="mx-auto max-w-6xl px-0 pb-12 sm:px-8 sm:pt-12 sm:pb-16">
+            <div className="grid items-center gap-8 lg:grid-cols-2">
+              <div className="order-2 px-6 lg:order-1 lg:px-0">
                 <Reveal>
                   <p className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm">
                     <span className="h-1.5 w-1.5 rounded-full bg-[#25D366]" />
@@ -147,9 +147,9 @@ export default function Home() {
                 </Reveal>
               </div>
 
-              <Reveal delay={0.08} className="relative">
-                <Card className="overflow-hidden">
-                  <div className="relative aspect-[16/12]">
+              <Reveal delay={0.08} className="relative order-1 lg:order-2">
+                <div className="overflow-hidden sm:rounded-2xl sm:border sm:border-slate-200 sm:bg-white sm:shadow-md">
+                  <div className="relative aspect-[4/3] sm:aspect-[16/12]">
                     <ImageWithSkeleton
                       src="/images/hero-miri.jpg"
                       alt="Global fusion dining"
@@ -158,7 +158,7 @@ export default function Home() {
                       imgClassName="object-cover transition-transform duration-500 hover:scale-[1.02]"
                     />
                   </div>
-                </Card>
+                </div>
               </Reveal>
             </div>
           </div>
