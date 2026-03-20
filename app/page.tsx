@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { BRAND, COUPON, whatsappLink } from "@/app/lib/constants";
 import { CouponModal } from "@/app/components/CouponModal";
 import { StickyCtaBar } from "@/app/components/StickyCtaBar";
@@ -24,6 +24,60 @@ type Dish = {
 
 export default function Home() {
   const [couponOpen, setCouponOpen] = useState(false);
+  const [carouselIndex, setCarouselIndex] = useState(0);
+
+  const carouselItems = useMemo(
+    () => [
+      {
+        title: "Daily Brief",
+        subtitle: "Government Shutdown Standoff",
+        desc: "Lawmakers clash over deportations amid unpaid federal workers.",
+        accent: "from-[#8aa4f5] to-[#6f84d8]",
+        image: "/images/grilled-fish-lemon-butter.jpg",
+        category: "Politics",
+      },
+      {
+        title: "Daily Brief",
+        subtitle: "Markets Rally On Tech Earnings",
+        desc: "Global indices rise as major tech firms beat expectations.",
+        accent: "from-[#78b0ff] to-[#4f7fdf]",
+        image: "/images/peri-peri-chicken-skewers.jpg",
+        category: "Business",
+      },
+      {
+        title: "Daily Brief",
+        subtitle: "World Leaders Meet For Climate",
+        desc: "Nations push for faster transition and stricter carbon targets.",
+        accent: "from-[#a889f0] to-[#cc60ae]",
+        image: "/images/paneer-steak-herb-sauce.jpg",
+        category: "World",
+      },
+      {
+        title: "Daily Brief",
+        subtitle: "Health Breakthrough In Vaccine Research",
+        desc: "Researchers report stronger immunity response in trials.",
+        accent: "from-[#63c3ea] to-[#5b87df]",
+        image: "/images/passionfruit-martini.jpg",
+        category: "Health",
+      },
+      {
+        title: "Daily Brief",
+        subtitle: "Team USA Dominates Winter Event",
+        desc: "Athletes claim decisive wins across multiple disciplines.",
+        accent: "from-[#6db4ea] to-[#3d79d8]",
+        image: "/images/truffle-mushroom-arancini.jpg",
+        category: "Sports",
+      },
+    ],
+    []
+  );
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCarouselIndex((prev) => (prev + 1) % carouselItems.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [carouselItems.length]);
 
   const dishes: Dish[] = useMemo(
     () => [
@@ -164,33 +218,139 @@ export default function Home() {
           </div>
         </section>
 
-        {/* iPhone app preview (mockup) */}
+        {/* iPhone app preview placeholder - TODO: add new content here */}
         <section className="bg-slate-50">
-          <div className="mx-auto max-w-6xl px-6 pb-14 pt-4 sm:px-8 sm:pb-20 sm:pt-0">
-            <Reveal className="text-center">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                App preview
-              </p>
-              <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
-                How your visit feels on mobile
-              </h2>
-              <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-600">
-                Scroll through dishes, vibe shots, and offers — just like your guests
-                would on their phones.
-              </p>
-            </Reveal>
+          <div className="mx-auto max-w-6xl px-6 py-14 sm:px-8 sm:py-20">
+            {/* Placeholder space for new content */}
+          </div>
+        </section>
 
-            <div className="mt-8 flex justify-center">
-              <div className="relative w-[82vw] max-w-[520px] sm:w-[70vw] sm:max-w-[520px]">
-                {/* Your iPhone mockup image (static) */}
-                <div className="relative mx-auto aspect-[9/19] w-full drop-shadow-2xl sm:drop-shadow-[0_40px_90px_rgba(15,23,42,0.35)]">
-                  <ImageWithSkeleton
-                    src="/iphone.png"
-                    alt="iPhone mockup"
-                    fill
-                    sizes="520px"
-                    imgClassName="object-contain scale-[1.8]"
+        {/* Carousel in iPhone Mockup Section */}
+        <section className="bg-white py-12 sm:py-16">
+          <div className="mx-auto max-w-6xl px-6 sm:px-8">
+            <div className="flex justify-center">
+              {/* iPhone Mockup Wrapper */}
+              <div className="relative mx-auto" style={{ width: "800px", maxWidth: "95vw" }}>
+                {/* Screen viewport (under frame) */}
+                <div
+                  className="absolute z-10 overflow-hidden"
+                  style={{
+                    left: "35.25%",
+                    top: "16%",
+                    width: "29.5%",
+                    bottom: "14.8%",
+                    borderRadius: "34px",
+                  }}
+                >
+                  <div
+                    className="h-full w-full flex transition-transform duration-700 ease-out"
+                    style={{ transform: `translateX(-${carouselIndex * 100}%)` }}
+                  >
+                    {carouselItems.map((item, index) => {
+                      const prevItem =
+                        carouselItems[
+                          (index - 1 + carouselItems.length) % carouselItems.length
+                        ];
+                      const nextItem = carouselItems[(index + 1) % carouselItems.length];
+
+                      return (
+                        <div
+                          key={index}
+                          className={`relative h-full w-full shrink-0 overflow-hidden bg-gradient-to-b ${item.accent}`}
+                        >
+                          <div className="absolute -left-[36%] top-[46%] h-[52%] w-[58%] rounded-[22px] border border-white/30 bg-black/25 opacity-75">
+                            <img
+                              src={prevItem.image}
+                              alt={prevItem.subtitle}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+
+                          <div className="absolute -right-[36%] top-[46%] h-[52%] w-[58%] rounded-[22px] border border-white/30 bg-black/25 opacity-75">
+                            <img
+                              src={nextItem.image}
+                              alt={nextItem.subtitle}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+
+                          <div className="relative z-10 flex h-full flex-col px-3 pt-3 pb-2">
+                            <div className="flex items-start justify-between text-slate-900">
+                              <div className="flex items-center gap-2">
+                                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-cyan-100 text-[10px] font-black text-cyan-700">
+                                  d
+                                </span>
+                                <div>
+                                  <p className="text-[14px] font-extrabold leading-none">deblurAI</p>
+                                  <p className="mt-0.5 text-[9px] text-slate-500">Next digest in 17h</p>
+                                </div>
+                              </div>
+                              <p className="text-lg leading-none text-slate-400">≡</p>
+                            </div>
+
+                            <div className="mt-3 flex flex-1 items-center justify-center">
+                              <div className="relative aspect-[9/16] h-full overflow-hidden rounded-[22px] border border-white/35 bg-white/20 p-2 backdrop-blur-[1px]">
+                                <div className="relative h-full overflow-hidden rounded-[18px]">
+                                  <img
+                                    src={item.image}
+                                    alt={item.subtitle}
+                                    className="h-full w-full object-cover"
+                                  />
+                                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-slate-900/70" />
+                                  <div className="absolute inset-x-0 bottom-0 p-3 text-center text-white">
+                                    <p className="text-lg font-black leading-tight">{item.subtitle}</p>
+                                    <p className="mt-1 text-[11px] leading-4 text-white/85">{item.desc}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="mt-2 flex items-center justify-center gap-1.5 text-[11px] font-semibold text-slate-700">
+                              <span className="h-2 w-2 rounded-full bg-blue-500" />
+                              {item.category}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div
+                    className="pointer-events-none absolute inset-0"
+                    style={{ boxShadow: "inset 0 0 20px rgba(0, 0, 0, 0.08)" }}
                   />
+                </div>
+
+                {/* iPhone frame (over viewport) */}
+                <img
+                  src="/images/iphone.png"
+                  alt="iPhone Mockup"
+                  className="pointer-events-none relative z-20 h-auto w-full"
+                />
+
+                {/* Navigation Arrows - Outside phone */}
+                <div className="pointer-events-none absolute left-0 right-0 top-1/2 z-30 flex -translate-y-1/2 justify-between">
+                  <button
+                    onClick={() =>
+                      setCarouselIndex(
+                        (prev) => (prev - 1 + carouselItems.length) % carouselItems.length
+                      )
+                    }
+                    className="pointer-events-auto -translate-x-14 text-slate-400 transition-colors hover:text-slate-700 sm:-translate-x-20"
+                  >
+                    <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+
+                  <button
+                    onClick={() => setCarouselIndex((prev) => (prev + 1) % carouselItems.length)}
+                    className="pointer-events-auto translate-x-14 text-slate-400 transition-colors hover:text-slate-700 sm:translate-x-20"
+                  >
+                    <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
                 </div>
               </div>
             </div>
