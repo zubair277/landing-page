@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { updateRestaurant, uploadImage } from "@/lib/queries";
 import type { Restaurant } from "@/types";
 import { Button } from "@/app/components/ui/Button";
@@ -20,8 +20,12 @@ export function CarouselImageManager({ restaurantId, initialRestaurant, onUpdate
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const isSameImages = (a: string[], b: string[]) =>
+    a.length === b.length && a.every((value, index) => value === b[index]);
+
   useEffect(() => {
-    setCarouselImages(initialRestaurant.carouselImages || []);
+    const nextImages = initialRestaurant.carouselImages || [];
+    setCarouselImages((prev) => (isSameImages(prev, nextImages) ? prev : nextImages));
   }, [initialRestaurant]);
 
   const onUploadCarouselImage = async (file: File, index: number) => {

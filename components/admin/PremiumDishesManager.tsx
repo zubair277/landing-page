@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import {
   addDish,
   deleteDish,
+  getDishesByRestaurant,
   updateDish,
   uploadImage,
 } from "@/lib/queries";
@@ -17,6 +18,42 @@ type Props = {
   onUpdated?: (dishes: Dish[]) => void;
 };
 
+type NewDishForm = {
+  name: string;
+  description: string;
+  price: string;
+  category: string;
+  image: string;
+};
+
+const EMPTY_NEW_DISH: NewDishForm = {
+  name: "",
+  description: "",
+  price: "",
+  category: "",
+  image: "",
+};
+
+function getErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof Error && err.message) return err.message;
+  return fallback;
+}
+
+function isSameDishList(a: Dish[], b: Dish[]): boolean {
+  if (a.length !== b.length) return false;
+  return a.every((dish, index) => {
+    const next = b[index];
+    return (
+      dish.id === next.id &&
+      dish.name === next.name &&
+      dish.description === next.description &&
+      dish.price === next.price &&
+      dish.category === next.category &&
+      dish.image === next.image
+    );
+  });
+}
+
 export function PremiumDishesManager({
   restaurantId,
   initialPremiumDishes,
@@ -28,13 +65,16 @@ export function PremiumDishesManager({
   const [editing, setEditing] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<Record<number, Partial<Dish>>>({});
+  const [newDish, setNewDish] = useState<NewDishForm>(EMPTY_NEW_DISH);
 
   useEffect(() => {
-    setPremiumDishes(initialPremiumDishes.slice(0, 6));
+    const next = initialPremiumDishes.slice(0, 6);
+    setPremiumDishes((prev) => (isSameDishList(prev, next) ? prev : next));
   }, [initialPremiumDishes]);
 
   const onUploadImage = async (file: File, index: number) => {
@@ -52,8 +92,10 @@ export function PremiumDishesManager({
         },
       }));
       setMessage(`Image uploaded for dish ${index + 1}.`);
-    } catch {
-      setError(`Failed to upload image for dish ${index + 1}.`);
+    } catch (err) {
+      setError(
+        getErrorMessage(err, `Failed to upload image for dish ${index + 1}. Check Storage rules.`)
+      );
     } finally {
       setUploading(false);
     }
@@ -90,8 +132,8 @@ export function PremiumDishesManager({
       setFormData((prev) => ({ ...prev, [index]: {} }));
       onUpdated?.(nextDishes);
       setMessage(`Dish ${index + 1} saved successfully.`);
-    } catch {
-      setError(`Failed to save dish ${index + 1}.`);
+    } catch (err) {
+      setError(getErrorMessage(err, `Failed to save dish ${index + 1}.`));
     } finally {
       setSaving(false);
     }
@@ -112,8 +154,65 @@ export function PremiumDishesManager({
       setPremiumDishes(nextDishes);
       onUpdated?.(nextDishes);
       setMessage("Dish deleted.");
-    } catch {
-      setError("Failed to delete dish.");
+    } catch (err) {
+      setError(getErrorMessage(err, "Failed to delete dish."));
+    }
+  };
+
+  const onUploadNewDishImage = async (file: File) => {
+    setUploading(true);
+    setMessage(null);
+    setError(null);
+
+    try {
+      const imageUrl = await uploadImage(restaurantId, file);
+      setNewDish((prev) => ({ ...prev, image: imageUrl }));
+      setMessage("Image uploaded for new premium dish.");
+    } catch (err) {
+      setError(getErrorMessage(err, "Failed to upload image for new dish. Check Storage rules."));
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const onAddDish = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!newDish.image) {
+      setError("Please upload dish image first and wait for upload to complete.");
+      return;
+    }
+
+    if (premiumDishes.length >= 6) {
+      setError("You can only configure up to 6 premium dishes.");
+      return;
+    }
+
+    setCreating(true);
+    setMessage(null);
+    setError(null);
+
+    try {
+      await addDish({
+        restaurantId,
+        name: newDish.name,
+        description: newDish.description,
+        price: Number(newDish.price),
+        category: newDish.category,
+        image: newDish.image,
+        section: "premium",
+      });
+
+      const refreshed = await getDishesByRestaurant(restaurantId);
+      const nextPremium = refreshed.filter((dish) => dish.section === "premium").slice(0, 6);
+      setPremiumDishes(nextPremium);
+      onUpdated?.(nextPremium);
+      setNewDish(EMPTY_NEW_DISH);
+      setMessage("New premium dish added.");
+    } catch (err) {
+      setError(getErrorMessage(err, "Failed to add premium dish. Check Firestore rules."));
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -301,6 +400,92 @@ export function PremiumDishesManager({
 
       {message && <p className="mt-4 text-sm text-emerald-600 font-medium">{message}</p>}
       {error && <p className="mt-4 text-sm text-red-600 font-medium">{error}</p>}
+
+      <div className="mt-6 rounded-2xl border border-slate-200 bg-gradient-to-r from-white to-slate-50 p-4">
+        <div className="mb-3">
+          <h3 className="text-base font-bold text-slate-900">Add New Premium Dish</h3>
+          <p className="text-sm text-slate-600">Create a new dish with image for this premium section.</p>
+        </div>
+
+        <form onSubmit={onAddDish} className="grid gap-3">
+          <label className="grid gap-1 text-sm text-slate-700">
+            Dish Name
+            <input
+              value={newDish.name}
+              onChange={(e) => setNewDish((prev) => ({ ...prev, name: e.target.value }))}
+              className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none ring-[#25D366]/40 focus:ring-2"
+              required
+            />
+          </label>
+
+          <label className="grid gap-1 text-sm text-slate-700">
+            Description
+            <textarea
+              value={newDish.description}
+              onChange={(e) => setNewDish((prev) => ({ ...prev, description: e.target.value }))}
+              className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none ring-[#25D366]/40 focus:ring-2"
+              rows={2}
+              required
+            />
+          </label>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="grid gap-1 text-sm text-slate-700">
+              Price (₹)
+              <input
+                type="number"
+                min="0"
+                value={newDish.price}
+                onChange={(e) => setNewDish((prev) => ({ ...prev, price: e.target.value }))}
+                className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none ring-[#25D366]/40 focus:ring-2"
+                required
+              />
+            </label>
+
+            <label className="grid gap-1 text-sm text-slate-700">
+              Category
+              <input
+                value={newDish.category}
+                onChange={(e) => setNewDish((prev) => ({ ...prev, category: e.target.value }))}
+                className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none ring-[#25D366]/40 focus:ring-2"
+                required
+              />
+            </label>
+          </div>
+
+          <div className="grid gap-2">
+            <label className="text-sm text-slate-700">Dish Image {newDish.image ? "✓ Uploaded" : "(required)"}</label>
+            {newDish.image ? (
+              <div className="relative h-24 w-full overflow-hidden rounded-lg bg-slate-100">
+                <img src={newDish.image} alt="New dish preview" className="h-full w-full object-cover" />
+              </div>
+            ) : null}
+            <input
+              type="file"
+              accept="image/*"
+              disabled={uploading || creating}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) void onUploadNewDishImage(file);
+              }}
+              className="block text-sm text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-900 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-slate-800"
+            />
+          </div>
+
+          <Button
+            type="submit"
+            disabled={creating || uploading || premiumDishes.length >= 6}
+            className="w-fit"
+          >
+            {creating ? "Adding..." : "Add Premium Dish"}
+          </Button>
+          {uploading ? <p className="text-xs text-slate-500">Uploading image...</p> : null}
+          {!newDish.image ? <p className="text-xs text-slate-500">Select an image and wait for upload before adding.</p> : null}
+          {premiumDishes.length >= 6 ? (
+            <p className="text-xs text-slate-500">Maximum of 6 premium dishes reached.</p>
+          ) : null}
+        </form>
+      </div>
     </Card>
   );
 }

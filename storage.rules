@@ -1,10 +1,42 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userDocPath(uid) {
+      return /databases/(default)/documents/users/$(uid);
+    }
+
+    function restaurantDocPath(restaurantId) {
+      return /databases/(default)/documents/restaurants/$(restaurantId);
+    }
+
+    function hasUserDoc() {
+      return isSignedIn() && firestore.exists(userDocPath(request.auth.uid));
+    }
+
+    function isSuperAdmin() {
+      return hasUserDoc() && firestore.get(userDocPath(request.auth.uid)).data.role == "super_admin";
+    }
+
+    function isRestaurantAdmin(restaurantId) {
+      return hasUserDoc() &&
+        firestore.get(userDocPath(request.auth.uid)).data.role == "restaurant_admin" &&
+        firestore.get(userDocPath(request.auth.uid)).data.restaurantId == restaurantId;
+    }
+
+    function isRestaurantOwner(restaurantId) {
+      return isSignedIn() &&
+        firestore.exists(restaurantDocPath(restaurantId)) &&
+        firestore.get(restaurantDocPath(restaurantId)).data.ownerUid == request.auth.uid;
+    }
+
     match /restaurants/{restaurantId}/{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth != null &&
-        firestore.get(/databases/(default)/documents/restaurants/$(restaurantId)).data.ownerUid == request.auth.uid;
+      allow write: if isSignedIn() &&
+        (isSuperAdmin() || isRestaurantAdmin(restaurantId) || isRestaurantOwner(restaurantId));
     }
   }
 }

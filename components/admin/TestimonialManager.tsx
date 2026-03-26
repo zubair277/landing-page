@@ -14,9 +14,10 @@ import { Card } from "@/app/components/ui/Card";
 type Props = {
   restaurantId: string;
   initialData: Testimonial[];
+  onUpdated?: (next: Testimonial[]) => void;
 };
 
-export function TestimonialManager({ restaurantId, initialData }: Props) {
+export function TestimonialManager({ restaurantId, initialData, onUpdated }: Props) {
   const [testimonials, setTestimonials] = useState<Testimonial[]>(initialData);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -35,6 +36,7 @@ export function TestimonialManager({ restaurantId, initialData }: Props) {
   const reload = async () => {
     const next = await getTestimonialsByRestaurant(restaurantId);
     setTestimonials(next);
+    onUpdated?.(next);
   };
 
   const onCreate = async (e: FormEvent<HTMLFormElement>) => {

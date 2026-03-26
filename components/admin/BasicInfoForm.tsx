@@ -74,6 +74,11 @@ function toFormState(restaurant: Restaurant): BasicFormState {
   };
 }
 
+function isSameFormState(a: BasicFormState, b: BasicFormState): boolean {
+  const keys = Object.keys(a) as Array<keyof BasicFormState>;
+  return keys.every((key) => a[key] === b[key]);
+}
+
 export function BasicInfoForm({ restaurantId, initialRestaurant, onUpdated }: Props) {
   const [form, setForm] = useState<BasicFormState>(() => toFormState(initialRestaurant));
   const [saving, setSaving] = useState(false);
@@ -81,7 +86,8 @@ export function BasicInfoForm({ restaurantId, initialRestaurant, onUpdated }: Pr
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setForm(toFormState(initialRestaurant));
+    const nextForm = toFormState(initialRestaurant);
+    setForm((prev) => (isSameFormState(prev, nextForm) ? prev : nextForm));
   }, [initialRestaurant]);
 
   const onSave = async (e: FormEvent<HTMLFormElement>) => {
