@@ -1,0 +1,115 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function getUser() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isSuperAdmin() {
+      return isAuth() && getUser().role == "super_admin";
+    }
+
+    function isRestaurantAdmin(restaurantId) {
+      return isAuth() && getUser().role == "restaurant_admin" && 
+             getUser().restaurantId == restaurantId;
+    }
+
+    function isRestaurantOwner(ownerUid) {
+      return isAuth() && request.auth.uid == ownerUid;
+    }
+
+    // Users collection - only super admins and self can read/write
+    match /users/{userId} {
+      allow read: if isAuth() && (request.auth.uid == userId || isSuperAdmin());
+      allow write: if isAuth() && (request.auth.uid == userId || isSuperAdmin());
+      allow create: if isAuth() && (request.auth.uid == userId || isSuperAdmin());
+    }
+
+    // Restaurants collection
+    match /restaurants/{restaurantId} {
+      // Anyone can read restaurants (public landing pages)
+      allow read: if true;
+      
+      // Write access: super admin or restaurant owner
+      allow write: if isAuth() && 
+                      (isSuperAdmin() || 
+                       isRestaurantOwner(resource.data.ownerUid));
+      
+      // Create: super admin only
+      allow create: if isSuperAdmin();
+    }
+
+    // Dishes collection
+    match /dishes/{dishId} {
+      allow read: if true;
+      
+      // Create: user must be super admin OR restaurant admin/owner of the restaurant
+      allow create: if isAuth() && 
+                       request.resource.data.restaurantId is string && (
+                         isSuperAdmin() ||
+                         isRestaurantAdmin(request.resource.data.restaurantId) ||
+                         isRestaurantOwner(
+                           get(/databases/$(database)/documents/restaurants/$(request.resource.data.restaurantId)).data.ownerUid
+                         )
+                       );
+      
+      // Update/Delete: super admin or owner of the restaurant
+      allow update, delete: if isAuth() && (
+                              isSuperAdmin() ||
+                              isRestaurantAdmin(resource.data.restaurantId) ||
+                              isRestaurantOwner(
+                                get(/databases/$(database)/documents/restaurants/$(resource.data.restaurantId)).data.ownerUid
+                              )
+                            );
+    }
+
+    // Testimonials collection
+    match /testimonials/{testimonialId} {
+      allow read: if true;
+      
+      allow create: if isAuth() && 
+                       request.resource.data.restaurantId is string && (
+                         isSuperAdmin() ||
+                         isRestaurantAdmin(request.resource.data.restaurantId) ||
+                         isRestaurantOwner(
+                           get(/databases/$(database)/documents/restaurants/$(request.resource.data.restaurantId)).data.ownerUid
+                         )
+                       );
+      
+      allow update, delete: if isAuth() && (
+                              isSuperAdmin() ||
+                              isRestaurantAdmin(resource.data.restaurantId) ||
+                              isRestaurantOwner(
+                                get(/databases/$(database)/documents/restaurants/$(resource.data.restaurantId)).data.ownerUid
+                              )
+                            );
+    }
+
+    // Media collection
+    match /media/{mediaId} {
+      allow read: if true;
+      
+      allow create: if isAuth() && 
+                       request.resource.data.restaurantId is string && (
+                         isSuperAdmin() ||
+                         isRestaurantAdmin(request.resource.data.restaurantId) ||
+                         isRestaurantOwner(
+                           get(/databases/$(database)/documents/restaurants/$(request.resource.data.restaurantId)).data.ownerUid
+                         )
+                       );
+      
+      allow update, delete: if isAuth() && (
+                              isSuperAdmin() ||
+                              isRestaurantAdmin(resource.data.restaurantId) ||
+                              isRestaurantOwner(
+                                get(/databases/$(database)/documents/restaurants/$(resource.data.restaurantId)).data.ownerUid
+                              )
+                            );
+    }
+  }
+}

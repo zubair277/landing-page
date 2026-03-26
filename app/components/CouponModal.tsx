@@ -1,16 +1,17 @@
 "use client";
 
 import { useEffect } from "react";
-import { COUPON } from "@/app/lib/constants";
 import { Button } from "@/app/components/ui/Button";
 import { Card } from "@/app/components/ui/Card";
 
 export function CouponModal({
   open,
   onClose,
+  couponCode,
 }: {
   open: boolean;
   onClose: () => void;
+  couponCode: string;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -49,7 +50,7 @@ export function CouponModal({
                 Coupon code
               </p>
               <p className="mt-2 text-2xl font-black tracking-tight text-slate-900">
-                {COUPON.code}
+                {couponCode}
               </p>
               <p className="mt-1 text-sm text-slate-600">
                 Show this at the counter to get 20% off.
@@ -67,7 +68,7 @@ export function CouponModal({
             <Button
               className="flex-1"
               onClick={async () => {
-                await navigator.clipboard.writeText(COUPON.code);
+                await navigator.clipboard.writeText(couponCode);
               }}
             >
               Copy Code

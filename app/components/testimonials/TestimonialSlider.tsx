@@ -7,46 +7,12 @@ import { TestimonialCard, type Testimonial } from "@/app/components/testimonials
 export function TestimonialSlider({
   title = "What people say about us",
   subtitle = "Quick feedback from real visitors",
+  testimonials,
 }: {
   title?: string;
   subtitle?: string;
+  testimonials: Testimonial[];
 }) {
-  const testimonials: Testimonial[] = useMemo(
-    () => [
-      {
-        name: "Anika R.",
-        text: "Amazing ambience and incredible food — perfect for a night out at Miramar.",
-        rating: 5.0,
-      },
-      {
-        name: "Karan D.",
-        text: "Loved the cocktails and the vibe. The fusion specials are a standout — definitely coming back.",
-        rating: 4.9,
-      },
-      {
-        name: "Priya S.",
-        text: "One of the best dining experiences in Goa. Beautiful plating, bold flavors, and top-notch service.",
-        rating: 5.0,
-      },
-      {
-        name: "Rohan M.",
-        text: "Signature mains were exceptional. The lemon butter fish was cooked perfectly.",
-        rating: 4.8,
-      },
-      {
-        name: "Meera K.",
-        text: "A premium global dining vibe with music, cocktails, and an atmosphere that feels elevated.",
-        rating: 4.9,
-      },
-      {
-        name: "Dev P.",
-        text: "The service is warm and attentive. Perfect spot for celebrations and sunset dinners.",
-        rating: 4.8,
-      },
-    ],
-    []
-  );
-
   // Duplicate for seamless loop
   const loop = useMemo(() => [...testimonials, ...testimonials], [testimonials]);
 

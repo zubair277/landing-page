@@ -29,6 +29,7 @@ export function ImageWithSkeleton({
       />
       <Image
         {...props}
+        alt={props.alt}
         className={imgClassName}
         onLoad={(e) => {
           props.onLoad?.(e);
